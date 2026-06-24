@@ -40,7 +40,7 @@ Crie automações para:
 
 1. Acesse o repositório:
    ```
-   https://github.com/kelvi/pc-cleaner-macro
+   https://github.com/zynxamigo/fast-clear-your-pc
    ```
 
 2. Clique no botão verde **Code** (Código)
@@ -57,8 +57,8 @@ Crie automações para:
 ### Opção 2 — Clonar com Git
 
 ```bash
-git clone https://github.com/kelvi/pc-cleaner-macro.git
-cd pc-cleaner-macro
+git clone https://github.com/zynxamigo/fast-clear-your-pc.git
+cd fast-clear-your-pc
 ```
 
 ---
@@ -156,20 +156,18 @@ MIT — use livremente.
 O projeto já está com Git inicializado. Para subir ao GitHub:
 
 1. Crie um repositório novo em [github.com/new](https://github.com/new)
-   - Nome: `pc-cleaner-macro`
+   - Nome: `fast-clear-your-pc`
    - Deixe **público**
    - **Não** marque "Add README" (já temos um)
 
 2. No terminal, dentro da pasta do projeto:
 
 ```bash
-cd C:\Users\kelvi\pc-cleaner-macro
-git remote add origin https://github.com/SEU_USUARIO/pc-cleaner-macro.git
+cd C:\caminho\para\fast-clear-your-pc
+git remote add origin https://github.com/zynxamigo/fast-clear-your-pc.git
 git branch -M main
 git push -u origin main
 ```
-
-3. Troque `SEU_USUARIO` pelo seu nome de usuário do GitHub.
 
 Pronto — qualquer pessoa poderá baixar pelo botão **Code → Download ZIP**.
 
