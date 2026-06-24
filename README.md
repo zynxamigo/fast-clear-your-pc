@@ -11,7 +11,7 @@ A **safe Windows cleanup** app with **system macros** (Android MacroDroid style)
 ## Features
 
 ### Safe Cleanup
-- Removes temp files, browser cache, Recycle Bin, prefetch and more
+- **46 cleanup options** — temp files, browser/app/dev caches, logs, dumps and more
 - **Never deletes** `System32`, `SysWOW64`, `Windows`, `Program Files` or other critical paths
 - Blocks deletion of DLLs, drivers (`.sys`) and system executables
 - Shows **how much space was freed** after cleanup

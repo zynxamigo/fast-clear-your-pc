@@ -229,8 +229,9 @@ class PCCleanerApp:
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
+        risky_defaults_off = {"windows_old"}
         for target in SAFE_CLEAN_TARGETS:
-            var = tk.BooleanVar(value=True)
+            var = tk.BooleanVar(value=target["id"] not in risky_defaults_off)
             self.target_vars[target["id"]] = var
             cb = ttk.Checkbutton(inner, variable=var)
             cb.pack(anchor=tk.W, pady=2)
