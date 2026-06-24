@@ -1,0 +1,3 @@
+# PC Cleaner Macro — sem dependências externas obrigatórias
+# Usa apenas biblioteca padrão do Python 3.10+
+# Tkinter vem incluso na instalação padrão do Python no Windows

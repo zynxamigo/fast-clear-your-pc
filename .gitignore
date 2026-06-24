@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+data/exclusions.json
+data/macros.json
+data/settings.json
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini

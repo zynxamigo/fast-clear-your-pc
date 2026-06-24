@@ -1,0 +1,34 @@
+[
+  {
+    "id": "exemplo1",
+    "name": "Abrir Bloco de Notas",
+    "trigger": "manual",
+    "trigger_params": {},
+    "actions": [
+      {
+        "action_type": "open_app",
+        "params": {"path": "notepad.exe"}
+      }
+    ],
+    "enabled": true,
+    "created_at": "2026-06-23T00:00:00"
+  },
+  {
+    "id": "exemplo2",
+    "name": "Criar pasta MeusScripts",
+    "trigger": "manual",
+    "trigger_params": {},
+    "actions": [
+      {
+        "action_type": "create_folder",
+        "params": {"path": "C:\\Users\\%USERNAME%\\Documents\\MeusScripts"}
+      },
+      {
+        "action_type": "notification",
+        "params": {"title": "Macro", "message": "Pasta criada com sucesso!"}
+      }
+    ],
+    "enabled": true,
+    "created_at": "2026-06-23T00:00:00"
+  }
+]
