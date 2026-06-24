@@ -151,6 +151,30 @@ MIT — use livremente.
 
 ---
 
+## Publicar no GitHub (para o desenvolvedor)
+
+O projeto já está com Git inicializado. Para subir ao GitHub:
+
+1. Crie um repositório novo em [github.com/new](https://github.com/new)
+   - Nome: `pc-cleaner-macro`
+   - Deixe **público**
+   - **Não** marque "Add README" (já temos um)
+
+2. No terminal, dentro da pasta do projeto:
+
+```bash
+cd C:\Users\kelvi\pc-cleaner-macro
+git remote add origin https://github.com/SEU_USUARIO/pc-cleaner-macro.git
+git branch -M main
+git push -u origin main
+```
+
+3. Troque `SEU_USUARIO` pelo seu nome de usuário do GitHub.
+
+Pronto — qualquer pessoa poderá baixar pelo botão **Code → Download ZIP**.
+
+---
+
 ## Suporte
 
-Encontrou um bug? Abra uma [Issue no GitHub](https://github.com/kelvi/pc-cleaner-macro/issues).
+Encontrou um bug? Abra uma Issue no GitHub do repositório.
