@@ -1,6 +1,6 @@
-# PC Cleaner Macro
+# Fast Clear Your PC (PC Cleaner Macro)
 
-Aplicativo de **limpeza segura do Windows** com **macros do sistema** (estilo Android MacroDroid). Remove lixo temporário sem tocar em pastas críticas como `System32`.
+A **safe Windows cleanup** app with **system macros** (Android MacroDroid style). Removes temporary junk without touching critical folders like `System32`.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-green.svg)
@@ -8,53 +8,64 @@ Aplicativo de **limpeza segura do Windows** com **macros do sistema** (estilo An
 
 ---
 
-## O que faz
+## Features
 
-### Limpeza Segura
-- Remove arquivos temporários, cache de navegadores, lixeira, prefetch e mais
-- **Nunca apaga** `System32`, `SysWOW64`, `Windows`, `Program Files` e pastas críticas
-- Bloqueia exclusão de DLLs, drivers (`.sys`) e executáveis do sistema
-- Mostra **quanto espaço foi liberado** após a limpeza
+### Safe Cleanup
+- Removes temp files, browser cache, Recycle Bin, prefetch and more
+- **Never deletes** `System32`, `SysWOW64`, `Windows`, `Program Files` or other critical paths
+- Blocks deletion of DLLs, drivers (`.sys`) and system executables
+- Shows **how much space was freed** after cleanup
 
-### Exclusões Personalizadas
-- Proteja pastas, arquivos ou apps inteiros da limpeza
-- Basta adicionar na aba **Exclusões** — eles nunca serão afetados
+### Custom Exclusions
+- Protect folders, files or entire apps from cleanup
+- Add them in the **Exclusions** tab — they will never be affected
 
-### Macros do Sistema (estilo Android)
-Crie automações para:
-- Executar comandos PowerShell/CMD
-- Abrir aplicativos
-- Criar pastas e arquivos
-- Modificar o Registro do Windows
-- Copiar/mover arquivos
-- Criar atalhos
-- Controlar serviços do Windows
-- Exibir notificações
-- E mais...
+### System Macros (Android-style)
+**50+ automation actions**, including:
+- Run PowerShell / CMD / batch commands
+- Open apps, URLs, folders
+- Kill / close processes
+- Create, delete, copy, move, rename, zip files and folders
+- Edit Windows Registry
+- Environment variables
+- Shortcuts and wallpaper
+- Windows services (start/stop/restart)
+- Notifications and message boxes
+- Lock, sleep, hibernate, shutdown, restart, logoff
+- Clipboard, DNS flush, Wi-Fi toggle
+- Screenshots, volume control, dark mode
+- Startup programs, scheduled tasks
+- Download files, HTTP requests, send keystrokes
+- And much more...
+
+### Multi-Language
+- **English**
+- **Português**
+- **System Language** — follows your Windows display language automatically
 
 ---
 
-## Como baixar e instalar
+## Download & Install
 
-### Opção 1 — Baixar do GitHub (recomendado)
+### Option 1 — Download from GitHub (recommended)
 
-1. Acesse o repositório:
+1. Open the repository:
    ```
    https://github.com/zynxamigo/fast-clear-your-pc
    ```
 
-2. Clique no botão verde **Code** (Código)
+2. Click the green **Code** button
 
-3. Selecione **Download ZIP**
+3. Select **Download ZIP**
 
-4. Extraia o ZIP em uma pasta, por exemplo:
+4. Extract to a folder, e.g.:
    ```
-   C:\Users\SeuUsuario\pc-cleaner-macro
+   C:\Users\YourName\fast-clear-your-pc
    ```
 
-5. Pronto! Não precisa instalar nada além do Python.
+5. Done! You only need Python installed.
 
-### Opção 2 — Clonar com Git
+### Option 2 — Clone with Git
 
 ```bash
 git clone https://github.com/zynxamigo/fast-clear-your-pc.git
@@ -63,116 +74,116 @@ cd fast-clear-your-pc
 
 ---
 
-## Requisitos
+## Requirements
 
-- **Windows 10 ou 11**
-- **Python 3.10 ou superior** — [Baixar Python](https://www.python.org/downloads/)
+- **Windows 10 or 11**
+- **Python 3.10+** — [Download Python](https://www.python.org/downloads/)
 
-> Na instalação do Python, marque a opção **"Add Python to PATH"**.
+> During Python installation, check **"Add Python to PATH"**.
 
 ---
 
-## Como usar
+## How to Use
 
-### Iniciar o aplicativo
+### Launch the app
 
-**Forma fácil:** dê duplo clique em `run.bat`
+**Easy way:** double-click `run.bat`
 
-**Pelo terminal:**
+**From terminal:**
 ```bash
-cd pc-cleaner-macro
+cd fast-clear-your-pc
 python main.py
 ```
 
-### Fazer limpeza
+### Change language
 
-1. Abra a aba **Limpeza**
-2. Marque o que deseja limpar (ou deixe tudo marcado)
-3. Clique em **Analisar espaço** para ver quanto pode liberar
-4. Clique em **Limpar agora** para executar
-5. Veja o relatório de **espaço liberado** na tela
+Use the dropdown at the top of the window:
+- **System Language** — auto-detects from Windows
+- **English**
+- **Português**
 
-### Proteger pastas/apps
+You can also change it in the **Settings** tab.
 
-1. Vá na aba **Exclusões**
-2. Clique em **Adicionar pasta**, **Adicionar arquivo** ou **Adicionar app**
-3. Selecione o que quer proteger
-4. Esses itens nunca serão apagados na limpeza
+### Run cleanup
 
-### Criar macros
+1. Open the **Cleanup** tab
+2. Check what you want to clean (or leave all checked)
+3. Click **Analyze space** to preview recoverable space
+4. Click **Clean now** to run
+5. See the **space freed** report on screen
 
-1. Vá na aba **Macros**
-2. Clique em **Nova macro**
-3. Dê um nome e escolha o gatilho (manual, ao iniciar, agendado)
-4. Selecione uma ação (ex: `create_folder`, `open_app`, `run_command`)
-5. Preencha os parâmetros e clique em **Adicionar ação**
-6. Clique em **Salvar macro**
-7. Selecione a macro e clique em **Executar**
+### Protect folders/apps
+
+1. Go to **Exclusions**
+2. Click **Add folder**, **Add file** or **Add app**
+3. Select what to protect
+4. Those items will never be deleted during cleanup
+
+### Create macros
+
+1. Go to **Macros**
+2. Click **New macro**
+3. Name it and pick a trigger (manual, on startup, scheduled, etc.)
+4. Select an action from **50+ options** (e.g. `create_folder`, `open_app`, `shutdown_pc`)
+5. Fill in parameters and click **Add action**
+6. Click **Save macro**
+7. Select the macro and click **Run**
 
 ---
 
-## Proteções de segurança
+## Safety Protections
 
-O app **sempre protege** automaticamente:
+The app **always protects** automatically:
 
-| Protegido | Motivo |
+| Protected | Reason |
 |-----------|--------|
-| `C:\Windows\System32` | Núcleo do Windows — **obrigatório** |
-| `C:\Windows\SysWOW64` | Compatibilidade 32-bit |
-| `C:\Windows` | Sistema operacional |
-| `C:\Program Files` | Programas instalados |
-| `.dll`, `.sys`, `.drv` | Bibliotecas e drivers |
-| Itens na lista de exclusões | Escolha do usuário |
+| `C:\Windows\System32` | Windows core — **mandatory** |
+| `C:\Windows\SysWOW64` | 32-bit compatibility |
+| `C:\Windows` | Operating system |
+| `C:\Program Files` | Installed programs |
+| `.dll`, `.sys`, `.drv` | Libraries and drivers |
+| Exclusion list items | User choice |
 
 ---
 
-## Estrutura do projeto
+## Project Structure
 
 ```
-pc-cleaner-macro/
-├── main.py              # Inicia o app
-├── run.bat              # Atalho para Windows
+fast-clear-your-pc/
+├── main.py              # Entry point
+├── run.bat              # Windows shortcut
 ├── requirements.txt
 ├── README.md
-├── data/                # Configurações salvas
+├── data/                # Saved settings
 │   ├── exclusions.json
-│   └── macros.json
+│   ├── macros.json
+│   └── settings.json
 └── src/
-    ├── cleaner/         # Motor de limpeza
-    ├── macro/           # Motor de macros
-    └── gui/             # Interface gráfica
+    ├── i18n/            # Multi-language support
+    ├── cleaner/         # Cleanup engine
+    ├── macro/           # Macro engine (50+ actions)
+    └── gui/             # Graphical interface
 ```
 
 ---
 
-## Licença
-
-MIT — use livremente.
-
----
-
-## Publicar no GitHub (para o desenvolvedor)
-
-O projeto já está com Git inicializado. Para subir ao GitHub:
-
-1. Crie um repositório novo em [github.com/new](https://github.com/new)
-   - Nome: `fast-clear-your-pc`
-   - Deixe **público**
-   - **Não** marque "Add README" (já temos um)
-
-2. No terminal, dentro da pasta do projeto:
+## Publish to GitHub (for developers)
 
 ```bash
-cd C:\caminho\para\fast-clear-your-pc
+cd fast-clear-your-pc
 git remote add origin https://github.com/zynxamigo/fast-clear-your-pc.git
 git branch -M main
 git push -u origin main
 ```
 
-Pronto — qualquer pessoa poderá baixar pelo botão **Code → Download ZIP**.
+---
+
+## License
+
+MIT — free to use.
 
 ---
 
-## Suporte
+## Support
 
-Encontrou um bug? Abra uma Issue no GitHub do repositório.
+Found a bug? Open an [Issue on GitHub](https://github.com/zynxamigo/fast-clear-your-pc/issues).

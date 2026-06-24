@@ -24,19 +24,19 @@ PROTECTED_EXTENSIONS = {
 
 # Pastas seguras para limpeza (apenas lixo temporário)
 SAFE_CLEAN_TARGETS = [
-    {"id": "user_temp", "name": "Arquivos temporários do usuário", "path": None},
-    {"id": "windows_temp", "name": "Temp do Windows", "path": r"C:\Windows\Temp"},
-    {"id": "prefetch", "name": "Prefetch (cache de inicialização)", "path": r"C:\Windows\Prefetch"},
-    {"id": "thumbnail_cache", "name": "Cache de miniaturas", "path": None},
-    {"id": "recycle_bin", "name": "Lixeira", "path": None},
-    {"id": "chrome_cache", "name": "Cache do Google Chrome", "path": None},
-    {"id": "edge_cache", "name": "Cache do Microsoft Edge", "path": None},
-    {"id": "firefox_cache", "name": "Cache do Firefox", "path": None},
-    {"id": "windows_update_cache", "name": "Cache de atualizações do Windows", "path": r"C:\Windows\SoftwareDistribution\Download"},
-    {"id": "delivery_optimization", "name": "Otimização de entrega (Delivery Optimization)", "path": r"C:\Windows\SoftwareDistribution\DeliveryOptimization"},
-    {"id": "recent_files", "name": "Lista de arquivos recentes", "path": None},
-    {"id": "error_reports", "name": "Relatórios de erro do Windows", "path": r"C:\ProgramData\Microsoft\Windows\WER"},
-    {"id": "installer_cache", "name": "Cache de instaladores MSI", "path": None},
+    {"id": "user_temp", "path": None},
+    {"id": "windows_temp", "path": r"C:\Windows\Temp"},
+    {"id": "prefetch", "path": r"C:\Windows\Prefetch"},
+    {"id": "thumbnail_cache", "path": None},
+    {"id": "recycle_bin", "path": None},
+    {"id": "chrome_cache", "path": None},
+    {"id": "edge_cache", "path": None},
+    {"id": "firefox_cache", "path": None},
+    {"id": "windows_update_cache", "path": r"C:\Windows\SoftwareDistribution\Download"},
+    {"id": "delivery_optimization", "path": r"C:\Windows\SoftwareDistribution\DeliveryOptimization"},
+    {"id": "recent_files", "path": None},
+    {"id": "error_reports", "path": r"C:\ProgramData\Microsoft\Windows\WER"},
+    {"id": "installer_cache", "path": None},
 ]
 
 
