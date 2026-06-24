@@ -1,18 +1,44 @@
-"""Macro action definitions — params schema only (names come from i18n)."""
+"""Macro action definitions — params schema (display names from i18n)."""
 
 ACTION_DEFINITIONS: dict[str, list[str]] = {
-    # Shell & commands
+    # ── Shell & commands ──
     "run_command": ["command"],
     "run_cmd": ["command"],
     "run_batch": ["path"],
-    # Apps & processes
+    "run_as_admin": ["command"],
+    # ── Apps & processes ──
     "open_app": ["path"],
+    "open_app_with_sound": ["path", "sound_path", "mode", "delay_ms"],
     "open_url": ["url"],
     "open_folder": ["path"],
+    "open_settings": ["page"],
     "close_app": ["process_name"],
     "kill_process": ["pid"],
     "kill_process_by_name": ["process_name"],
-    # Files & folders
+    "focus_window": ["window_title"],
+    "open_task_manager": [],
+    "open_device_manager": [],
+    "open_services": [],
+    "open_registry": [],
+    # ── Sound & audio (priority features) ──
+    "play_sound": ["sound_path"],
+    "play_sound_async": ["sound_path"],
+    "play_mp3": ["sound_path"],
+    "stop_all_sounds": [],
+    "beep": ["frequency", "duration_ms"],
+    "speak_text": ["text", "rate"],
+    "set_device_connect_sound": ["wav_path"],
+    "set_device_disconnect_sound": ["wav_path"],
+    "set_system_sound": ["sound_event", "wav_path"],
+    "play_system_sound": ["sound_event"],
+    "restore_system_sound": ["sound_event"],
+    "restore_all_sounds": [],
+    "open_sound_settings": [],
+    "test_plug_unplug_sounds": [],
+    "set_volume": ["level"],
+    "mute_volume": ["mute"],
+    "set_app_volume": ["process_name", "level"],
+    # ── Files & folders ──
     "create_folder": ["path"],
     "delete_folder": ["path"],
     "create_file": ["path", "content"],
@@ -23,61 +49,108 @@ ACTION_DEFINITIONS: dict[str, list[str]] = {
     "rename_file": ["source", "destination"],
     "zip_folder": ["folder", "zip_path"],
     "unzip_file": ["zip_path", "destination"],
-    # Registry & environment
+    "read_file": ["path"],
+    "list_folder": ["path"],
+    # ── Registry & environment ──
     "set_registry": ["hive", "key", "name", "value", "type"],
     "delete_registry": ["hive", "key", "name"],
     "set_env_var": ["name", "value"],
     "delete_env_var": ["name"],
-    # Shortcuts & desktop
+    # ── Desktop & appearance ──
     "create_shortcut": ["target", "shortcut_path"],
     "delete_shortcut": ["shortcut_path"],
     "set_wallpaper": ["image_path"],
-    # Services
+    "set_wallpaper_solid": ["color"],
+    "enable_dark_mode": [],
+    "disable_dark_mode": [],
+    "toggle_desktop_icons": [],
+    "show_desktop": [],
+    "set_accent_color": ["color_hex"],
+    "toggle_night_light": [],
+    "hide_taskbar": [],
+    "show_taskbar": [],
+    # ── Services ──
     "toggle_service": ["service_name", "action"],
     "start_service": ["service_name"],
     "stop_service": ["service_name"],
     "restart_service": ["service_name"],
-    # Notifications & UI
+    # ── Notifications & UI ──
     "notification": ["title", "message"],
     "message_box": ["title", "message", "type"],
-    "play_sound": ["sound_path"],
-    "beep": ["frequency", "duration_ms"],
-    # Power & session
+    "toast_notification": ["title", "message"],
     "wait": ["seconds"],
+    "screenshot": ["save_path"],
+    "minimize_all": [],
+    "maximize_window": ["window_title"],
+    # ── Power & session ──
     "lock_screen": [],
     "sleep_pc": [],
     "hibernate_pc": [],
     "shutdown_pc": ["delay_seconds"],
     "restart_pc": ["delay_seconds"],
+    "cancel_shutdown": [],
     "logoff_user": [],
-    # Clipboard
+    "prevent_sleep": ["minutes"],
+    "allow_sleep": [],
+    "set_power_plan": ["plan"],
+    # ── Clipboard & input ──
     "set_clipboard": ["text"],
     "clear_clipboard": [],
-    # Network
+    "send_keys": ["keys"],
+    "type_text": ["text"],
+    "mouse_click": ["x", "y", "button"],
+    "mouse_move": ["x", "y"],
+    "scroll_wheel": ["amount"],
+    "toggle_caps_lock": [],
+    "block_input": ["seconds"],
+    "unblock_input": [],
+    # ── Network ──
     "flush_dns": [],
     "enable_wifi": [],
     "disable_wifi": [],
+    "toggle_wifi": [],
+    "enable_bluetooth": [],
+    "disable_bluetooth": [],
+    "ping_host": ["host"],
     "download_file": ["url", "save_path"],
     "http_request": ["url"],
-    # System tweaks
+    "open_network_settings": [],
+    # ── System maintenance ──
     "empty_recycle_bin": [],
-    "screenshot": ["save_path"],
-    "minimize_all": [],
-    "set_volume": ["level"],
-    "mute_volume": ["mute"],
+    "clear_temp_macro": [],
+    "refresh_explorer": [],
+    "open_control_panel": ["item"],
+    "set_datetime": ["datetime"],
+    "eject_drive": ["drive_letter"],
+    "open_disk_cleanup": [],
+    # ── Startup & tasks ──
     "add_startup": ["name", "command"],
     "remove_startup": ["name"],
     "create_task": ["task_name", "command", "schedule"],
     "delete_task": ["task_name"],
-    "send_keys": ["keys"],
-    "enable_dark_mode": [],
-    "disable_dark_mode": [],
-    "open_control_panel": ["item"],
-    "refresh_explorer": [],
-    "clear_temp_macro": [],
-    "set_datetime": ["datetime"],
-    "block_input": ["seconds"],
-    "unblock_input": [],
+    "run_other_macro": ["macro_id"],
+    # ── Display ──
+    "set_brightness": ["level"],
+    "set_resolution": ["width", "height"],
+    # ── Focus & productivity ──
+    "toggle_focus_assist": [],
+    "open_camera": [],
+    "toggle_microphone": [],
+    "toggle_game_bar": [],
 }
 
-TRIGGER_IDS = ("manual", "startup", "schedule", "battery_low", "wifi_connected", "app_opened")
+# Params that get a file-browse button in the GUI
+FILE_BROWSE_PARAMS = {
+    "path", "sound_path", "wav_path", "source", "destination",
+    "folder", "zip_path", "image_path", "save_path", "shortcut_path",
+}
+
+SOUND_BROWSE_PARAMS = {"sound_path", "wav_path"}
+
+EXE_BROWSE_PARAMS = {"path"}
+
+TRIGGER_IDS = (
+    "manual", "startup", "schedule", "battery_low",
+    "wifi_connected", "app_opened", "device_plugged", "device_unplugged",
+    "sound_played",
+)

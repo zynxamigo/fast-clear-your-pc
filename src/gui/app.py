@@ -9,7 +9,14 @@ from src.cleaner.engine import CleanerEngine, format_bytes
 from src.cleaner.safety import SAFE_CLEAN_TARGETS, is_protected_path
 from src.config import EXCLUSIONS_FILE, MACROS_FILE
 from src.i18n import I18n
-from src.macro.actions import ACTION_DEFINITIONS, TRIGGER_IDS
+from src.macro.actions import (
+    ACTION_DEFINITIONS,
+    EXE_BROWSE_PARAMS,
+    FILE_BROWSE_PARAMS,
+    SOUND_BROWSE_PARAMS,
+    TRIGGER_IDS,
+)
+from src.macro.sounds import WINDOWS_SOUND_EVENTS
 from src.macro.engine import Macro, MacroAction, MacroEngine
 
 
@@ -134,6 +141,7 @@ class PCCleanerApp:
                 "macro_trigger_lbl": "macro.trigger",
                 "macro_actions_lbl": "macro.actions",
                 "macro_log_lbl": "macro.log",
+                "macro_search_lbl": "macro.search",
                 "settings_title": "settings.title",
                 "settings_lang": "settings.language",
                 "settings_hint": "settings.language_hint",
@@ -150,6 +158,9 @@ class PCCleanerApp:
                 "excl_app": "excl.add_app", "excl_remove": "excl.remove",
                 "macro_new": "macro.new", "macro_run": "macro.run", "macro_del": "macro.delete",
                 "macro_add": "macro.add_action", "macro_save": "macro.save",
+                "tpl_app_sound": "macro.tpl_app_sound",
+                "tpl_plug_sound": "macro.tpl_plug_sound",
+                "tpl_unplug_sound": "macro.tpl_unplug_sound",
             }
             if key in mapping:
                 widget.config(text=self._t(mapping[key]))
@@ -174,17 +185,29 @@ class PCCleanerApp:
     def _rebuild_action_combo(self):
         self._action_key_to_label.clear()
         self._label_to_action_key.clear()
-        labels = []
+        self._all_action_labels = []
         for key in sorted(ACTION_DEFINITIONS.keys()):
             label = self._t(f"action.{key}")
             self._action_key_to_label[key] = label
             self._label_to_action_key[label] = key
-            labels.append(label)
+            self._all_action_labels.append(label)
         if hasattr(self, "action_combo"):
-            current_key = self._get_selected_action_key()
-            self.action_combo["values"] = labels
-            if current_key and current_key in self._action_key_to_label:
-                self.action_type_var.set(self._action_key_to_label[current_key])
+            self._filter_action_combo()
+
+    def _filter_action_combo(self):
+        if not hasattr(self, "_all_action_labels"):
+            return
+        query = self.action_search_var.get().lower().strip() if hasattr(self, "action_search_var") else ""
+        current_key = self._get_selected_action_key()
+        if query:
+            labels = [l for l in self._all_action_labels if query in l.lower() or query in self._label_to_action_key.get(l, "")]
+        else:
+            labels = self._all_action_labels
+        self.action_combo["values"] = labels
+        if current_key and current_key in self._action_key_to_label:
+            lbl = self._action_key_to_label[current_key]
+            if lbl in labels:
+                self.action_type_var.set(lbl)
 
     def _rebuild_trigger_combo(self):
         if hasattr(self, "trigger_combo"):
@@ -464,8 +487,25 @@ class PCCleanerApp:
         self.action_listbox = tk.Listbox(action_frame, height=6, font=("Consolas", 9))
         self.action_listbox.pack(fill=tk.BOTH, expand=True)
 
+        search_frame = ttk.Frame(right)
+        search_frame.grid(row=4, column=0, columnspan=2, sticky=tk.EW, pady=4)
+        self._labels["macro_search_lbl"] = ttk.Label(search_frame)
+        self._labels["macro_search_lbl"].pack(side=tk.LEFT)
+        self.action_search_var = tk.StringVar()
+        self.action_search_var.trace_add("write", lambda *_: self._filter_action_combo())
+        ttk.Entry(search_frame, textvariable=self.action_search_var, width=30).pack(side=tk.LEFT, padx=4, fill=tk.X, expand=True)
+
+        tpl_frame = ttk.Frame(right)
+        tpl_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=2)
+        self._buttons["tpl_app_sound"] = ttk.Button(tpl_frame, command=self._template_app_with_sound)
+        self._buttons["tpl_app_sound"].pack(side=tk.LEFT, padx=2)
+        self._buttons["tpl_plug_sound"] = ttk.Button(tpl_frame, command=self._template_plug_sound)
+        self._buttons["tpl_plug_sound"].pack(side=tk.LEFT, padx=2)
+        self._buttons["tpl_unplug_sound"] = ttk.Button(tpl_frame, command=self._template_unplug_sound)
+        self._buttons["tpl_unplug_sound"].pack(side=tk.LEFT, padx=2)
+
         add_frame = ttk.Frame(right)
-        add_frame.grid(row=4, column=0, columnspan=2, sticky=tk.W, pady=4)
+        add_frame.grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=4)
 
         self.action_type_var = tk.StringVar()
         self.action_combo = ttk.Combobox(add_frame, textvariable=self.action_type_var, state="readonly", width=28)
@@ -482,10 +522,10 @@ class PCCleanerApp:
         self._buttons["macro_save"].pack(side=tk.LEFT, padx=4)
 
         self._labels["macro_log_lbl"] = ttk.Label(right, style="Header.TLabel")
-        self._labels["macro_log_lbl"].grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=(8, 2))
+        self._labels["macro_log_lbl"].grid(row=7, column=0, columnspan=2, sticky=tk.W, pady=(8, 2))
         self.macro_log = tk.Text(right, height=5, wrap=tk.WORD, font=("Consolas", 9))
-        self.macro_log.grid(row=6, column=0, columnspan=2, sticky=tk.NSEW)
-        right.rowconfigure(6, weight=1)
+        self.macro_log.grid(row=8, column=0, columnspan=2, sticky=tk.NSEW)
+        right.rowconfigure(8, weight=1)
         right.columnconfigure(1, weight=1)
 
         self._current_macro_id: str | None = None
@@ -523,6 +563,22 @@ class PCCleanerApp:
             label = self._t(f"action.{a['action_type']}")
             self.action_listbox.insert(tk.END, f"{label}: {a['params']}")
 
+    def _browse_param(self, param: str, var: tk.StringVar):
+        if param in SOUND_BROWSE_PARAMS:
+            path = filedialog.askopenfilename(
+                title=self._t("macro.browse_sound"),
+                filetypes=[(self._t("macro.filetypes_sound"), "*.wav *.mp3 *.ogg"), (self._t("excl.filetypes_all"), "*.*")],
+            )
+        elif param in EXE_BROWSE_PARAMS and self._get_selected_action_key() in ("open_app", "open_app_with_sound"):
+            path = filedialog.askopenfilename(
+                title=self._t("macro.browse_app"),
+                filetypes=[(self._t("excl.filetypes_exe"), "*.exe"), (self._t("excl.filetypes_all"), "*.*")],
+            )
+        else:
+            path = filedialog.askopenfilename(title=self._t("macro.browse_file"))
+        if path:
+            var.set(path)
+
     def _on_action_type_change(self, _event=None):
         for w in self.action_params_frame.winfo_children():
             w.destroy()
@@ -531,10 +587,60 @@ class PCCleanerApp:
         if not action_key or action_key not in ACTION_DEFINITIONS:
             return
         for i, param in enumerate(ACTION_DEFINITIONS[action_key]):
-            ttk.Label(self.action_params_frame, text=f"{param}:").grid(row=0, column=i * 2, padx=2)
+            col = i * 3
+            ttk.Label(self.action_params_frame, text=f"{param}:").grid(row=0, column=col, padx=2)
             var = tk.StringVar()
             self.action_param_vars[param] = var
-            ttk.Entry(self.action_params_frame, textvariable=var, width=14).grid(row=0, column=i * 2 + 1, padx=2)
+            if param == "sound_event":
+                combo = ttk.Combobox(
+                    self.action_params_frame, textvariable=var,
+                    values=list(WINDOWS_SOUND_EVENTS.keys()), width=16,
+                )
+                combo.grid(row=0, column=col + 1, padx=2)
+                if action_key == "set_device_connect_sound":
+                    var.set("device_connect")
+                elif action_key == "set_device_disconnect_sound":
+                    var.set("device_disconnect")
+            elif param == "mode":
+                ttk.Combobox(
+                    self.action_params_frame, textvariable=var,
+                    values=["simultaneous", "sound_first", "app_first"], width=14,
+                ).grid(row=0, column=col + 1, padx=2)
+                var.set("simultaneous")
+            else:
+                ttk.Entry(self.action_params_frame, textvariable=var, width=14).grid(row=0, column=col + 1, padx=2)
+            if param in FILE_BROWSE_PARAMS or param in SOUND_BROWSE_PARAMS:
+                ttk.Button(
+                    self.action_params_frame, text="...",
+                    width=2, command=lambda v=var, p=param: self._browse_param(p, v),
+                ).grid(row=0, column=col + 2, padx=1)
+
+    def _template_app_with_sound(self):
+        self.macro_name_var.set(self._t("macro.tpl_app_sound_name"))
+        self._current_actions = [{
+            "action_type": "open_app_with_sound",
+            "params": {"path": "C:\\Windows\\notepad.exe", "sound_path": r"C:\Windows\Media\Windows Notify.wav", "mode": "sound_first", "delay_ms": "300"},
+        }]
+        self.action_listbox.delete(0, tk.END)
+        self.action_listbox.insert(tk.END, self._t("action.open_app_with_sound") + ": notepad + sound")
+
+    def _template_plug_sound(self):
+        self.macro_name_var.set(self._t("macro.tpl_plug_name"))
+        self._current_actions = [{
+            "action_type": "set_device_connect_sound",
+            "params": {"wav_path": r"C:\Windows\Media\Windows Hardware Insert.wav"},
+        }]
+        self.action_listbox.delete(0, tk.END)
+        self.action_listbox.insert(tk.END, self._t("action.set_device_connect_sound"))
+
+    def _template_unplug_sound(self):
+        self.macro_name_var.set(self._t("macro.tpl_unplug_name"))
+        self._current_actions = [{
+            "action_type": "set_device_disconnect_sound",
+            "params": {"wav_path": r"C:\Windows\Media\Windows Hardware Remove.wav"},
+        }]
+        self.action_listbox.delete(0, tk.END)
+        self.action_listbox.insert(tk.END, self._t("action.set_device_disconnect_sound"))
 
     def _add_action_to_macro(self):
         action_key = self._get_selected_action_key()

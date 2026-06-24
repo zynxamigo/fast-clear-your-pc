@@ -13,6 +13,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .actions import ACTION_DEFINITIONS, TRIGGER_IDS
+from .handlers_extra import ExtraMacroMixin
+from .handlers_sound import SoundMacroMixin
+from .sounds import play_wav
 
 HIVE_MAP = {
     "HKCU": winreg.HKEY_CURRENT_USER,
@@ -64,7 +67,7 @@ def _ps(cmd: str, timeout: int = 120) -> subprocess.CompletedProcess:
     )
 
 
-class MacroEngine:
+class MacroEngine(SoundMacroMixin, ExtraMacroMixin):
     """Executes and manages system macros."""
 
     def __init__(self, macros_file: Path, i18n=None):
@@ -349,7 +352,7 @@ class MacroEngine:
 
     def _act_play_sound(self, p):
         path = p.get("sound_path", "")
-        _ps(f'(New-Object Media.SoundPlayer "{path}").PlaySync()')
+        play_wav(path, async_play=False)
         return f"Sound: {path}"
 
     def _act_beep(self, p):

@@ -1,34 +1,56 @@
 [
   {
-    "id": "exemplo1",
-    "name": "Abrir Bloco de Notas",
+    "id": "som_plug",
+    "name": "Som personalizado ao conectar USB",
     "trigger": "manual",
-    "trigger_params": {},
     "actions": [
       {
-        "action_type": "open_app",
-        "params": {"path": "notepad.exe"}
-      }
-    ],
-    "enabled": true,
-    "created_at": "2026-06-23T00:00:00"
-  },
-  {
-    "id": "exemplo2",
-    "name": "Criar pasta MeusScripts",
-    "trigger": "manual",
-    "trigger_params": {},
-    "actions": [
-      {
-        "action_type": "create_folder",
-        "params": {"path": "C:\\Users\\%USERNAME%\\Documents\\MeusScripts"}
+        "action_type": "set_device_connect_sound",
+        "params": {"wav_path": "C:\\Users\\Public\\Music\\meu_plug.wav"}
       },
       {
-        "action_type": "notification",
-        "params": {"title": "Macro", "message": "Pasta criada com sucesso!"}
+        "action_type": "test_plug_unplug_sounds",
+        "params": {}
       }
     ],
-    "enabled": true,
-    "created_at": "2026-06-23T00:00:00"
+    "enabled": true
+  },
+  {
+    "id": "som_unplug",
+    "name": "Som personalizado ao desconectar USB",
+    "trigger": "manual",
+    "actions": [
+      {
+        "action_type": "set_device_disconnect_sound",
+        "params": {"wav_path": "C:\\Users\\Public\\Music\\meu_unplug.wav"}
+      }
+    ],
+    "enabled": true
+  },
+  {
+    "id": "notepad_som",
+    "name": "Abrir Bloco de Notas com som",
+    "trigger": "manual",
+    "actions": [
+      {
+        "action_type": "open_app_with_sound",
+        "params": {
+          "path": "notepad.exe",
+          "sound_path": "C:\\Windows\\Media\\Windows Notify.wav",
+          "mode": "sound_first",
+          "delay_ms": "200"
+        }
+      }
+    ],
+    "enabled": true
+  },
+  {
+    "id": "restaurar_sons",
+    "name": "Restaurar sons padrão do Windows",
+    "trigger": "manual",
+    "actions": [
+      {"action_type": "restore_all_sounds", "params": {}}
+    ],
+    "enabled": true
   }
 ]
