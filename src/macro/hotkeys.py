@@ -1,14 +1,18 @@
-"""Global hotkey manager for Windows."""
+"""Global hotkey manager for Windows — reliable message-window approach."""
 import ctypes
+import threading
 from ctypes import wintypes
 
 user32 = ctypes.windll.user32
+kernel32 = ctypes.windll.kernel32
 
 MOD_ALT = 0x0001
 MOD_CONTROL = 0x0002
 MOD_SHIFT = 0x0004
 MOD_WIN = 0x0008
 WM_HOTKEY = 0x0312
+PM_REMOVE = 0x0001
+ERROR_HOTKEY_ALREADY_REGISTERED = 1409
 
 MODIFIER_NAMES = {
     "alt": MOD_ALT,
@@ -41,18 +45,23 @@ SPECIAL_KEYS = {
     "media_next": 0xB0,
     "media_prev": 0xB1,
     "media_play": 0xB3,
-    "media_stop": 0xB2,
-    "volume_up": 0xAF,
-    "volume_down": 0xAE,
-    "volume_mute": 0xAD,
 }
 
 for i in range(1, 13):
     SPECIAL_KEYS[f"f{i}"] = 0x6F + i
 
+class _MSG(ctypes.Structure):
+    _fields_ = [
+        ("hwnd", wintypes.HWND),
+        ("message", wintypes.UINT),
+        ("wParam", wintypes.WPARAM),
+        ("lParam", wintypes.LPARAM),
+        ("time", wintypes.DWORD),
+        ("pt", wintypes.POINT),
+    ]
+
 
 def parse_hotkey(hotkey_str: str) -> tuple[int, int]:
-    """Parse 'ctrl+alt+right' -> (modifiers, virtual_key)."""
     parts = [p.strip().lower() for p in hotkey_str.replace("-", "+").split("+") if p.strip()]
     if not parts:
         raise ValueError("Empty hotkey")
@@ -71,91 +80,119 @@ def parse_hotkey(hotkey_str: str) -> tuple[int, int]:
 
     if vk is None:
         raise ValueError(f"Missing key in hotkey: {hotkey_str}")
-    if mods == 0 and len(parts) == 1:
+    if mods == 0:
         raise ValueError("Hotkey needs at least one modifier (ctrl, alt, shift, win)")
     return mods, vk
 
 
-def format_hotkey(mods: int, vk: int) -> str:
-    """Format modifiers+vk as human-readable string."""
-    names = []
-    if mods & MOD_CONTROL:
-        names.append("ctrl")
-    if mods & MOD_ALT:
-        names.append("alt")
-    if mods & MOD_SHIFT:
-        names.append("shift")
-    if mods & MOD_WIN:
-        names.append("win")
-
-    vk_to_name = {v: k for k, v in SPECIAL_KEYS.items()}
-    if vk in vk_to_name:
-        names.append(vk_to_name[vk])
-    elif 0x41 <= vk <= 0x5A:
-        names.append(chr(vk).lower())
-    elif 0x30 <= vk <= 0x39:
-        names.append(chr(vk))
-    else:
-        names.append(f"vk{vk}")
-    return "+".join(names)
+def _get_last_error() -> int:
+    return kernel32.GetLastError()
 
 
-def get_tk_hwnd(root) -> int:
-    """Get proper HWND for RegisterHotKey on tkinter Windows."""
-    try:
-        wid = root.winfo_id()
-        parent = user32.GetParent(wid)
-        return parent if parent else wid
-    except Exception:
-        return root.winfo_id()
+_message_hwnd: int | None = None
+
+def create_message_window() -> int:
+    """Create invisible message-only window to receive WM_HOTKEY."""
+    global _message_hwnd
+    if _message_hwnd and user32.IsWindow(_message_hwnd):
+        return _message_hwnd
+
+    # HWND_MESSAGE = (HWND)(-3) — receives messages without showing a window
+    hwnd_message = wintypes.HWND(-3)
+
+    hwnd = user32.CreateWindowExW(
+        0,
+        "Static",
+        "PCCleanerMacroHotkeys",
+        0,
+        0, 0, 0, 0,
+        hwnd_message,
+        0,
+        kernel32.GetModuleHandleW(None),
+        None,
+    )
+    if not hwnd:
+        raise OSError(f"CreateWindowEx failed: {_get_last_error()}")
+
+    _message_hwnd = hwnd
+    return hwnd
 
 
 class HotkeyManager:
-    """Registers global hotkeys and polls WM_HOTKEY messages."""
+    """Registers global hotkeys via RegisterHotKey + WM_HOTKEY polling."""
 
     def __init__(self, hwnd: int, on_trigger: callable):
         self.hwnd = hwnd
         self.on_trigger = on_trigger
         self._map: dict[int, tuple[str, str]] = {}
+        self._hotkey_to_id: dict[str, int] = {}
         self._next_id = 1
+        self._errors: list[str] = []
+        self._lock = threading.Lock()
+
+    @property
+    def errors(self) -> list[str]:
+        return list(self._errors)
+
+    @property
+    def registered_count(self) -> int:
+        return len(self._map)
 
     def register(self, macro_id: str, hotkey_str: str) -> bool:
+        hotkey_str = hotkey_str.strip().lower()
+        if hotkey_str in self._hotkey_to_id:
+            self._errors.append(f"Duplicate hotkey: {hotkey_str}")
+            return False
         try:
             mods, vk = parse_hotkey(hotkey_str)
-        except ValueError:
+        except ValueError as e:
+            self._errors.append(str(e))
             return False
+
         hid = self._next_id
         self._next_id += 1
+
         if not user32.RegisterHotKey(self.hwnd, hid, mods, vk):
+            err = _get_last_error()
+            if err == ERROR_HOTKEY_ALREADY_REGISTERED:
+                self._errors.append(f"Hotkey already in use by another app: {hotkey_str}")
+            else:
+                self._errors.append(f"Failed to register {hotkey_str} (error {err})")
             return False
+
         self._map[hid] = (macro_id, hotkey_str)
+        self._hotkey_to_id[hotkey_str] = hid
         return True
 
     def unregister_all(self):
         for hid in list(self._map):
             user32.UnregisterHotKey(self.hwnd, hid)
         self._map.clear()
+        self._hotkey_to_id.clear()
 
-    def reload(self, macros):
-        self.unregister_all()
-        for macro in macros:
-            if not macro.enabled or macro.trigger != "hotkey":
-                continue
-            hotkey = macro.trigger_params.get("hotkey", "")
-            if hotkey:
-                self.register(macro.id, hotkey)
+    def reload(self, macros) -> tuple[int, list[str]]:
+        with self._lock:
+            self._errors.clear()
+            self.unregister_all()
+            count = 0
+            for macro in macros:
+                if not macro.enabled or macro.trigger != "hotkey":
+                    continue
+                hotkey = macro.trigger_params.get("hotkey", "").strip().lower()
+                if hotkey and self.register(macro.id, hotkey):
+                    count += 1
+            return count, self._errors
 
     def poll(self):
-        msg = wintypes.MSG()
-        while user32.PeekMessageW(ctypes.byref(msg), self.hwnd, 0, 0, 1):
-            if msg.message == WM_HOTKEY:
-                hid = msg.wParam
-                if hid in self._map:
-                    macro_id, hotkey = self._map[hid]
+        """Only remove WM_HOTKEY messages — won't break tkinter."""
+        msg = _MSG()
+        while user32.PeekMessageW(
+            ctypes.byref(msg), self.hwnd, WM_HOTKEY, WM_HOTKEY, PM_REMOVE
+        ):
+            hid = msg.wParam
+            if hid in self._map:
+                macro_id, hotkey = self._map[hid]
+                try:
                     self.on_trigger(macro_id, hotkey)
-
-    def get_hotkey_for_macro(self, macro_id: str) -> str | None:
-        for _, (mid, hk) in self._map.items():
-            if mid == macro_id:
-                return hk
-        return None
+                except Exception:
+                    pass

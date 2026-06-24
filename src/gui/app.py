@@ -19,7 +19,7 @@ from src.macro.actions import (
 from src.macro.sounds import WINDOWS_SOUND_EVENTS
 from src.gui.hotkey_recorder import HotkeyRecorder
 from src.macro.engine import Macro, MacroAction, MacroEngine
-from src.macro.hotkeys import HotkeyManager, get_tk_hwnd
+from src.macro.hotkeys import HotkeyManager, create_message_window
 
 
 class PCCleanerApp:
@@ -49,7 +49,8 @@ class PCCleanerApp:
         self._build_ui()
         self.i18n.on_change(self._apply_language)
         self._apply_language()
-        self._setup_hotkeys()
+        self.hotkey_manager = None
+        self.root.after(300, self._setup_hotkeys)
 
     def _t(self, key: str, **kwargs) -> str:
         return self.i18n.t(key, **kwargs)
@@ -451,7 +452,9 @@ class PCCleanerApp:
         self._labels["macro_title"] = ttk.Label(frame, style="Title.TLabel")
         self._labels["macro_title"].pack(anchor=tk.W)
         self._labels["macro_sub"] = ttk.Label(frame, wraplength=860)
-        self._labels["macro_sub"].pack(anchor=tk.W, pady=(0, 10))
+        self._labels["macro_sub"].pack(anchor=tk.W, pady=(0, 4))
+        self.hotkey_status_label = ttk.Label(frame, foreground="#1565c0", font=("Segoe UI", 9))
+        self.hotkey_status_label.pack(anchor=tk.W, pady=(0, 6))
 
         paned = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
         paned.pack(fill=tk.BOTH, expand=True)
@@ -728,19 +731,40 @@ class PCCleanerApp:
         )
 
     def _setup_hotkeys(self):
-        hwnd = get_tk_hwnd(self.root)
-        self.hotkey_manager = HotkeyManager(hwnd, self._on_hotkey_triggered)
-        self._reload_hotkeys()
-        self._poll_hotkeys()
+        try:
+            hwnd = create_message_window()
+            self.hotkey_manager = HotkeyManager(hwnd, self._on_hotkey_triggered)
+            self._reload_hotkeys()
+            self._poll_hotkeys()
+        except OSError as e:
+            if hasattr(self, "hotkey_status_label"):
+                self.hotkey_status_label.config(text=f"Hotkeys: error ({e})", foreground="#c62828")
 
     def _reload_hotkeys(self):
-        if hasattr(self, "hotkey_manager"):
-            self.hotkey_manager.reload(self.macro_engine.macros)
+        if not self.hotkey_manager:
+            return
+        count, errors = self.hotkey_manager.reload(self.macro_engine.macros)
+        if hasattr(self, "hotkey_status_label"):
+            if errors:
+                self.hotkey_status_label.config(
+                    text=self._t("macro.hotkey_status_err", count=count, errors="; ".join(errors[:2])),
+                    foreground="#c62828",
+                )
+            elif count > 0:
+                self.hotkey_status_label.config(
+                    text=self._t("macro.hotkey_status_ok", count=count),
+                    foreground="#2e7d32",
+                )
+            else:
+                self.hotkey_status_label.config(
+                    text=self._t("macro.hotkey_status_none"),
+                    foreground="#666",
+                )
 
     def _poll_hotkeys(self):
-        if hasattr(self, "hotkey_manager"):
+        if self.hotkey_manager:
             self.hotkey_manager.poll()
-        self.root.after(50, self._poll_hotkeys)
+        self.root.after(30, self._poll_hotkeys)
 
     def _on_hotkey_triggered(self, macro_id: str, hotkey: str):
         macro = self.macro_engine.get_macro(macro_id)
@@ -791,11 +815,13 @@ class PCCleanerApp:
         else:
             self.macro_engine.add_macro(macro)
         self.macro_engine.save()
-        self._reload_hotkeys()
         self._refresh_macro_list()
+        self._reload_hotkeys()
         msg = self._t("macro.saved_msg", name=name)
         if trigger == "hotkey":
             msg += "\n" + self._t("macro.hotkey_active", hotkey=hk)
+            if self.hotkey_manager and self.hotkey_manager.errors:
+                msg += "\n" + self._t("macro.hotkey_warn") + ": " + "; ".join(self.hotkey_manager.errors[:3])
         messagebox.showinfo(self._t("macro.saved"), msg)
 
     def _run_macro(self):

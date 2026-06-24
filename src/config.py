@@ -2,7 +2,7 @@
 from pathlib import Path
 
 APP_NAME = "PC Cleaner Macro"
-APP_VERSION = "1.4.0"
+APP_VERSION = "1.4.1"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
