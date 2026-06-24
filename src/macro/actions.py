@@ -137,6 +137,24 @@ ACTION_DEFINITIONS: dict[str, list[str]] = {
     "open_camera": [],
     "toggle_microphone": [],
     "toggle_game_bar": [],
+    # ── Spotify & media keys ──
+    "spotify_next": [],
+    "spotify_previous": [],
+    "spotify_play_pause": [],
+    "spotify_open": ["path"],
+    "spotify_next_focused": [],
+    "spotify_previous_focused": [],
+    "spotify_play_focused": [],
+    "spotify_like": [],
+    "spotify_shuffle": [],
+    "spotify_repeat": [],
+    "spotify_volume_up": ["times"],
+    "spotify_volume_down": ["times"],
+    "media_next": [],
+    "media_previous": [],
+    "media_play_pause": [],
+    "send_hotkey": ["hotkey"],
+    "open_app_hotkey": ["path", "hotkey_after", "delay_ms"],
 }
 
 # Params that get a file-browse button in the GUI
@@ -150,7 +168,7 @@ SOUND_BROWSE_PARAMS = {"sound_path", "wav_path"}
 EXE_BROWSE_PARAMS = {"path"}
 
 TRIGGER_IDS = (
-    "manual", "startup", "schedule", "battery_low",
+    "manual", "hotkey", "startup", "schedule", "battery_low",
     "wifi_connected", "app_opened", "device_plugged", "device_unplugged",
     "sound_played",
 )

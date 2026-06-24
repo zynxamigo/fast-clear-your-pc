@@ -17,7 +17,9 @@ from src.macro.actions import (
     TRIGGER_IDS,
 )
 from src.macro.sounds import WINDOWS_SOUND_EVENTS
+from src.gui.hotkey_recorder import HotkeyRecorder
 from src.macro.engine import Macro, MacroAction, MacroEngine
+from src.macro.hotkeys import HotkeyManager, get_tk_hwnd
 
 
 class PCCleanerApp:
@@ -47,6 +49,7 @@ class PCCleanerApp:
         self._build_ui()
         self.i18n.on_change(self._apply_language)
         self._apply_language()
+        self._setup_hotkeys()
 
     def _t(self, key: str, **kwargs) -> str:
         return self.i18n.t(key, **kwargs)
@@ -142,6 +145,7 @@ class PCCleanerApp:
                 "macro_actions_lbl": "macro.actions",
                 "macro_log_lbl": "macro.log",
                 "macro_search_lbl": "macro.search",
+                "macro_hotkey_lbl": "macro.hotkey_label",
                 "settings_title": "settings.title",
                 "settings_lang": "settings.language",
                 "settings_hint": "settings.language_hint",
@@ -161,6 +165,11 @@ class PCCleanerApp:
                 "tpl_app_sound": "macro.tpl_app_sound",
                 "tpl_plug_sound": "macro.tpl_plug_sound",
                 "tpl_unplug_sound": "macro.tpl_unplug_sound",
+                "tpl_spotify_next": "macro.tpl_spotify_next",
+                "tpl_spotify_prev": "macro.tpl_spotify_prev",
+                "tpl_spotify_play": "macro.tpl_spotify_play",
+                "tpl_spotify_open": "macro.tpl_spotify_open",
+                "macro_record_hk": "macro.record_hotkey",
             }
             if key in mapping:
                 widget.config(text=self._t(mapping[key]))
@@ -478,17 +487,28 @@ class PCCleanerApp:
         self.macro_trigger_var = tk.StringVar()
         self.trigger_combo = ttk.Combobox(right, textvariable=self.macro_trigger_var, state="readonly", width=28)
         self.trigger_combo.grid(row=1, column=1, sticky=tk.W, pady=2)
+        self.trigger_combo.bind("<<ComboboxSelected>>", self._on_trigger_change)
+
+        self.hotkey_frame = ttk.Frame(right)
+        self.hotkey_frame.grid(row=2, column=0, columnspan=2, sticky=tk.W, pady=2)
+        self._labels["macro_hotkey_lbl"] = ttk.Label(self.hotkey_frame)
+        self._labels["macro_hotkey_lbl"].pack(side=tk.LEFT)
+        self.macro_hotkey_var = tk.StringVar(value="ctrl+alt+right")
+        ttk.Entry(self.hotkey_frame, textvariable=self.macro_hotkey_var, width=22).pack(side=tk.LEFT, padx=4)
+        self._buttons["macro_record_hk"] = ttk.Button(self.hotkey_frame, command=self._record_hotkey)
+        self._buttons["macro_record_hk"].pack(side=tk.LEFT)
+        self.hotkey_frame.grid_remove()
 
         self._labels["macro_actions_lbl"] = ttk.Label(right, style="Header.TLabel")
-        self._labels["macro_actions_lbl"].grid(row=2, column=0, columnspan=2, sticky=tk.W, pady=(8, 2))
+        self._labels["macro_actions_lbl"].grid(row=3, column=0, columnspan=2, sticky=tk.W, pady=(8, 2))
 
         action_frame = ttk.Frame(right)
-        action_frame.grid(row=3, column=0, columnspan=2, sticky=tk.NSEW)
+        action_frame.grid(row=4, column=0, columnspan=2, sticky=tk.NSEW)
         self.action_listbox = tk.Listbox(action_frame, height=6, font=("Consolas", 9))
         self.action_listbox.pack(fill=tk.BOTH, expand=True)
 
         search_frame = ttk.Frame(right)
-        search_frame.grid(row=4, column=0, columnspan=2, sticky=tk.EW, pady=4)
+        search_frame.grid(row=5, column=0, columnspan=2, sticky=tk.EW, pady=4)
         self._labels["macro_search_lbl"] = ttk.Label(search_frame)
         self._labels["macro_search_lbl"].pack(side=tk.LEFT)
         self.action_search_var = tk.StringVar()
@@ -496,7 +516,7 @@ class PCCleanerApp:
         ttk.Entry(search_frame, textvariable=self.action_search_var, width=30).pack(side=tk.LEFT, padx=4, fill=tk.X, expand=True)
 
         tpl_frame = ttk.Frame(right)
-        tpl_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=2)
+        tpl_frame.grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=2)
         self._buttons["tpl_app_sound"] = ttk.Button(tpl_frame, command=self._template_app_with_sound)
         self._buttons["tpl_app_sound"].pack(side=tk.LEFT, padx=2)
         self._buttons["tpl_plug_sound"] = ttk.Button(tpl_frame, command=self._template_plug_sound)
@@ -504,8 +524,19 @@ class PCCleanerApp:
         self._buttons["tpl_unplug_sound"] = ttk.Button(tpl_frame, command=self._template_unplug_sound)
         self._buttons["tpl_unplug_sound"].pack(side=tk.LEFT, padx=2)
 
+        tpl_spotify = ttk.Frame(right)
+        tpl_spotify.grid(row=7, column=0, columnspan=2, sticky=tk.W, pady=2)
+        self._buttons["tpl_spotify_next"] = ttk.Button(tpl_spotify, command=self._template_spotify_next)
+        self._buttons["tpl_spotify_next"].pack(side=tk.LEFT, padx=2)
+        self._buttons["tpl_spotify_prev"] = ttk.Button(tpl_spotify, command=self._template_spotify_prev)
+        self._buttons["tpl_spotify_prev"].pack(side=tk.LEFT, padx=2)
+        self._buttons["tpl_spotify_play"] = ttk.Button(tpl_spotify, command=self._template_spotify_play)
+        self._buttons["tpl_spotify_play"].pack(side=tk.LEFT, padx=2)
+        self._buttons["tpl_spotify_open"] = ttk.Button(tpl_spotify, command=self._template_spotify_open)
+        self._buttons["tpl_spotify_open"].pack(side=tk.LEFT, padx=2)
+
         add_frame = ttk.Frame(right)
-        add_frame.grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=4)
+        add_frame.grid(row=8, column=0, columnspan=2, sticky=tk.W, pady=4)
 
         self.action_type_var = tk.StringVar()
         self.action_combo = ttk.Combobox(add_frame, textvariable=self.action_type_var, state="readonly", width=28)
@@ -522,10 +553,10 @@ class PCCleanerApp:
         self._buttons["macro_save"].pack(side=tk.LEFT, padx=4)
 
         self._labels["macro_log_lbl"] = ttk.Label(right, style="Header.TLabel")
-        self._labels["macro_log_lbl"].grid(row=7, column=0, columnspan=2, sticky=tk.W, pady=(8, 2))
+        self._labels["macro_log_lbl"].grid(row=9, column=0, columnspan=2, sticky=tk.W, pady=(8, 2))
         self.macro_log = tk.Text(right, height=5, wrap=tk.WORD, font=("Consolas", 9))
-        self.macro_log.grid(row=8, column=0, columnspan=2, sticky=tk.NSEW)
-        right.rowconfigure(8, weight=1)
+        self.macro_log.grid(row=10, column=0, columnspan=2, sticky=tk.NSEW)
+        right.rowconfigure(10, weight=1)
         right.columnconfigure(1, weight=1)
 
         self._current_macro_id: str | None = None
@@ -536,7 +567,11 @@ class PCCleanerApp:
         self.macro_listbox.delete(0, tk.END)
         for m in self.macro_engine.macros:
             status = "+" if m.enabled else "-"
-            trigger = self._t(f"trigger.{m.trigger}") if m.trigger in TRIGGER_IDS else m.trigger
+            if m.trigger == "hotkey":
+                hk = m.trigger_params.get("hotkey", "?")
+                trigger = f"[{hk}]"
+            else:
+                trigger = self._t(f"trigger.{m.trigger}") if m.trigger in TRIGGER_IDS else m.trigger
             self.macro_listbox.insert(tk.END, f"{status} {m.name} ({trigger})")
 
     def _new_macro(self):
@@ -544,6 +579,8 @@ class PCCleanerApp:
         self.macro_name_var.set(self._t("macro.new_default"))
         if hasattr(self, "_trigger_labels"):
             self.macro_trigger_var.set(self._trigger_labels["manual"])
+        self.macro_hotkey_var.set("ctrl+alt+right")
+        self._update_hotkey_visibility()
         self._current_actions = []
         self.action_listbox.delete(0, tk.END)
         self.macro_log.delete("1.0", tk.END)
@@ -557,6 +594,8 @@ class PCCleanerApp:
         self.macro_name_var.set(macro.name)
         if hasattr(self, "_trigger_labels") and macro.trigger in self._trigger_labels:
             self.macro_trigger_var.set(self._trigger_labels[macro.trigger])
+        self.macro_hotkey_var.set(macro.trigger_params.get("hotkey", "ctrl+alt+right"))
+        self._update_hotkey_visibility()
         self._current_actions = [{"action_type": a.action_type, "params": a.params} for a in macro.actions]
         self.action_listbox.delete(0, tk.END)
         for a in self._current_actions:
@@ -607,6 +646,12 @@ class PCCleanerApp:
                     values=["simultaneous", "sound_first", "app_first"], width=14,
                 ).grid(row=0, column=col + 1, padx=2)
                 var.set("simultaneous")
+            elif param == "hotkey":
+                ttk.Combobox(
+                    self.action_params_frame, textvariable=var,
+                    values=["ctrl+alt+n", "ctrl+alt+right", "ctrl+alt+left", "ctrl+shift+s", "alt+f4", "ctrl+c", "ctrl+v"],
+                    width=14,
+                ).grid(row=0, column=col + 1, padx=2)
             else:
                 ttk.Entry(self.action_params_frame, textvariable=var, width=14).grid(row=0, column=col + 1, padx=2)
             if param in FILE_BROWSE_PARAMS or param in SOUND_BROWSE_PARAMS:
@@ -642,6 +687,74 @@ class PCCleanerApp:
         self.action_listbox.delete(0, tk.END)
         self.action_listbox.insert(tk.END, self._t("action.set_device_disconnect_sound"))
 
+    def _apply_hotkey_template(self, name_key: str, hotkey: str, action_type: str):
+        self._current_macro_id = str(uuid.uuid4())[:8]
+        self.macro_name_var.set(self._t(name_key))
+        if hasattr(self, "_trigger_labels"):
+            self.macro_trigger_var.set(self._trigger_labels["hotkey"])
+        self.macro_hotkey_var.set(hotkey)
+        self._update_hotkey_visibility()
+        self._current_actions = [{"action_type": action_type, "params": {}}]
+        self.action_listbox.delete(0, tk.END)
+        self.action_listbox.insert(tk.END, f"{self._t(f'action.{action_type}')} [{hotkey}]")
+
+    def _template_spotify_next(self):
+        self._apply_hotkey_template("macro.tpl_spotify_next_name", "ctrl+alt+right", "spotify_next")
+
+    def _template_spotify_prev(self):
+        self._apply_hotkey_template("macro.tpl_spotify_prev_name", "ctrl+alt+left", "spotify_previous")
+
+    def _template_spotify_play(self):
+        self._apply_hotkey_template("macro.tpl_spotify_play_name", "ctrl+alt+space", "spotify_play_pause")
+
+    def _template_spotify_open(self):
+        self._apply_hotkey_template("macro.tpl_spotify_open_name", "ctrl+alt+s", "spotify_open")
+
+    def _on_trigger_change(self, _event=None):
+        self._update_hotkey_visibility()
+
+    def _update_hotkey_visibility(self):
+        if self._get_selected_trigger_key() == "hotkey":
+            self.hotkey_frame.grid()
+        else:
+            self.hotkey_frame.grid_remove()
+
+    def _record_hotkey(self):
+        HotkeyRecorder(
+            self.root,
+            self._t("macro.record_title"),
+            self._t("macro.record_hint"),
+            lambda combo: self.macro_hotkey_var.set(combo),
+        )
+
+    def _setup_hotkeys(self):
+        hwnd = get_tk_hwnd(self.root)
+        self.hotkey_manager = HotkeyManager(hwnd, self._on_hotkey_triggered)
+        self._reload_hotkeys()
+        self._poll_hotkeys()
+
+    def _reload_hotkeys(self):
+        if hasattr(self, "hotkey_manager"):
+            self.hotkey_manager.reload(self.macro_engine.macros)
+
+    def _poll_hotkeys(self):
+        if hasattr(self, "hotkey_manager"):
+            self.hotkey_manager.poll()
+        self.root.after(50, self._poll_hotkeys)
+
+    def _on_hotkey_triggered(self, macro_id: str, hotkey: str):
+        macro = self.macro_engine.get_macro(macro_id)
+        if not macro or not macro.enabled:
+            return
+
+        def run():
+            self.macro_engine.execute(macro)
+
+        threading.Thread(target=run, daemon=True).start()
+        self.root.after(0, lambda: self.macro_log.insert(
+            tk.END, self._t("macro.hotkey_fired", name=macro.name, hotkey=hotkey) + "\n"
+        ))
+
     def _add_action_to_macro(self):
         action_key = self._get_selected_action_key()
         if not action_key:
@@ -660,17 +773,30 @@ class PCCleanerApp:
         if not self._current_actions:
             messagebox.showwarning(self._t("warn.title"), self._t("macro.warn_actions"))
             return
+        trigger = self._get_selected_trigger_key()
+        trigger_params: dict = {}
+        if trigger == "hotkey":
+            hk = self.macro_hotkey_var.get().strip().lower()
+            if not hk:
+                messagebox.showwarning(self._t("warn.title"), self._t("macro.warn_hotkey"))
+                return
+            trigger_params = {"hotkey": hk}
+
         macro_id = self._current_macro_id or str(uuid.uuid4())[:8]
         actions = [MacroAction(**a) for a in self._current_actions]
-        macro = Macro(id=macro_id, name=name, trigger=self._get_selected_trigger_key(), actions=actions)
+        macro = Macro(id=macro_id, name=name, trigger=trigger, trigger_params=trigger_params, actions=actions)
         existing = self.macro_engine.get_macro(macro_id)
         if existing:
             self.macro_engine.macros = [macro if m.id == macro_id else m for m in self.macro_engine.macros]
         else:
             self.macro_engine.add_macro(macro)
         self.macro_engine.save()
+        self._reload_hotkeys()
         self._refresh_macro_list()
-        messagebox.showinfo(self._t("macro.saved"), self._t("macro.saved_msg", name=name))
+        msg = self._t("macro.saved_msg", name=name)
+        if trigger == "hotkey":
+            msg += "\n" + self._t("macro.hotkey_active", hotkey=hk)
+        messagebox.showinfo(self._t("macro.saved"), msg)
 
     def _run_macro(self):
         sel = self.macro_listbox.curselection()
@@ -695,6 +821,7 @@ class PCCleanerApp:
         macro = self.macro_engine.macros[sel[0]]
         if messagebox.askyesno(self._t("macro.confirm_title"), self._t("macro.confirm_delete", name=macro.name)):
             self.macro_engine.remove_macro(macro.id)
+            self._reload_hotkeys()
             self._refresh_macro_list()
 
     # ── Settings tab ─────────────────────────────────────────

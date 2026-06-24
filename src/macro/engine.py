@@ -14,6 +14,7 @@ from typing import Any, Callable
 
 from .actions import ACTION_DEFINITIONS, TRIGGER_IDS
 from .handlers_extra import ExtraMacroMixin
+from .handlers_media import MediaMacroMixin
 from .handlers_sound import SoundMacroMixin
 from .sounds import play_wav
 
@@ -67,7 +68,7 @@ def _ps(cmd: str, timeout: int = 120) -> subprocess.CompletedProcess:
     )
 
 
-class MacroEngine(SoundMacroMixin, ExtraMacroMixin):
+class MacroEngine(SoundMacroMixin, ExtraMacroMixin, MediaMacroMixin):
     """Executes and manages system macros."""
 
     def __init__(self, macros_file: Path, i18n=None):

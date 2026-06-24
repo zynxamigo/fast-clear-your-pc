@@ -1,30 +1,34 @@
 [
   {
-    "id": "som_plug",
-    "name": "Som personalizado ao conectar USB",
-    "trigger": "manual",
-    "actions": [
-      {
-        "action_type": "set_device_connect_sound",
-        "params": {"wav_path": "C:\\Users\\Public\\Music\\meu_plug.wav"}
-      },
-      {
-        "action_type": "test_plug_unplug_sounds",
-        "params": {}
-      }
-    ],
+    "id": "spotify_next",
+    "name": "Spotify - Próxima música",
+    "trigger": "hotkey",
+    "trigger_params": {"hotkey": "ctrl+alt+right"},
+    "actions": [{"action_type": "spotify_next", "params": {}}],
     "enabled": true
   },
   {
-    "id": "som_unplug",
-    "name": "Som personalizado ao desconectar USB",
-    "trigger": "manual",
-    "actions": [
-      {
-        "action_type": "set_device_disconnect_sound",
-        "params": {"wav_path": "C:\\Users\\Public\\Music\\meu_unplug.wav"}
-      }
-    ],
+    "id": "spotify_prev",
+    "name": "Spotify - Música anterior",
+    "trigger": "hotkey",
+    "trigger_params": {"hotkey": "ctrl+alt+left"},
+    "actions": [{"action_type": "spotify_previous", "params": {}}],
+    "enabled": true
+  },
+  {
+    "id": "spotify_play",
+    "name": "Spotify - Play/Pause",
+    "trigger": "hotkey",
+    "trigger_params": {"hotkey": "ctrl+alt+space"},
+    "actions": [{"action_type": "spotify_play_pause", "params": {}}],
+    "enabled": true
+  },
+  {
+    "id": "spotify_open",
+    "name": "Spotify - Abrir app",
+    "trigger": "hotkey",
+    "trigger_params": {"hotkey": "ctrl+alt+s"},
+    "actions": [{"action_type": "spotify_open", "params": {"path": ""}}],
     "enabled": true
   },
   {
@@ -41,15 +45,6 @@
           "delay_ms": "200"
         }
       }
-    ],
-    "enabled": true
-  },
-  {
-    "id": "restaurar_sons",
-    "name": "Restaurar sons padrão do Windows",
-    "trigger": "manual",
-    "actions": [
-      {"action_type": "restore_all_sounds", "params": {}}
     ],
     "enabled": true
   }
