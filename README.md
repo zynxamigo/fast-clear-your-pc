@@ -50,21 +50,10 @@ A **safe Windows cleanup** app with **system macros** (Android MacroDroid style)
 ### Option 1 — Download from GitHub (recommended)
 
 1. Open the repository:
-   ```
-   https://github.com/zynxamigo/fast-clear-your-pc
-   ```
-
 2. Click the green **Code** button
-
 3. Select **Download ZIP**
-
 4. Extract to a folder, e.g.:
-   ```
-   C:\Users\YourName\fast-clear-your-pc
-   ```
-
 5. Done! You only need Python installed.
-
 ### Option 2 — Clone with Git
 
 ```bash
